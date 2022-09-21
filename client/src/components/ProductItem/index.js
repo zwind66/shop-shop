@@ -1,23 +1,34 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { pluralize } from "../../utils/helpers";
-import { ADD_TO_CART, UPDATE_CART_QUANTITY} from '../../utils/actions';
-import { idbPromise } from "../../utils/helpers";
+import { pluralize } from "../../utils/helpers"
+
+import { ADD_TO_CART, UPDATE_CART_QUANTITY } from '../../utils/actions';
+import { idbPromise } from '../../utils/helpers';
+
 import { useDispatch, useSelector } from 'react-redux';
 
 function ProductItem(item) {
+  const {
+    image,
+    name,
+    _id,
+    price,
+    quantity
+  } = item;
 
   const state = useSelector((state) => {
-    return state
+    return state;
   });
   const dispatch = useDispatch();
 
   const { cart } = state;
 
-
   const addToCart = () => {
-    const itemInCart = cart.find((cartItem) => cartItem._id === _id)
-    if (itemInCart) {
+    // check for a matching item in the cart
+    const itemInCart = cart.find((cartItem) => cartItem._id === _id);
+
+    // if there is a match, use UPDATE and update the purchase quantity, otherwise use ADD; store data in IndexedDB as well
+    if(itemInCart) {
       dispatch({
         type: UPDATE_CART_QUANTITY,
         _id: _id,
@@ -34,20 +45,7 @@ function ProductItem(item) {
       });
       idbPromise('cart', 'put', { ...item, purchaseQuantity: 1 });
     }
-  }
-
-
-
-  const {
-    image,
-    name,
-    _id,
-    price,
-    quantity
-  } = item;
-
-
-
+  };
 
   return (
     <div className="card px-1 py-1">

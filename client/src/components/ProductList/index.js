@@ -1,68 +1,62 @@
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 import { useQuery } from '@apollo/react-hooks';
+
 import ProductItem from "../ProductItem";
 import { QUERY_PRODUCTS } from "../../utils/queries";
 import spinner from "../../assets/spinner.gif"
-import { UPDATE_PRODUCTS } from '../../utils/actions';
-import { idbPromise } from '../../utils/helpers';
-import { useDispatch, useSelector } from 'react-redux';
 
+import { UPDATE_PRODUCTS } from "../../utils/actions";
+
+import { idbPromise } from "../../utils/helpers";
+
+import { useDispatch, useSelector } from 'react-redux';
 
 function ProductList() {
 
-
   const state = useSelector((state) => {
-    return state
+    return state;
   });
   const dispatch = useDispatch();
 
   const { currentCategory } = state;
-  
   const { loading, data } = useQuery(QUERY_PRODUCTS);
 
-  const products = data?.products || [];
-  
   useEffect(() => {
-    //if there is data to be stored
+    // when there is data to be stored
     if (data) {
+      // store in the global state object
       dispatch({
         type: UPDATE_PRODUCTS,
         products: data.products
       });
-      // but let's also take each product and save it to IndexedDB using the helper function
+      // and store it in IndexedDB
       data.products.forEach((product) => {
-        idbPromise('products', 'put', product)
+        idbPromise('products', 'put', product);
       });
-
-      // add else if to check if `loading` is undefined in `useQuery()` Hook
-  
     } else if (!loading) {
-      //since we are offline, get all if the data from the products store
-
+      // if loading is undefined, the user is offline - get data from the `products` store in IndexedDB
       idbPromise('products', 'get').then((products) => {
-        //use retrieved data to set global state for offline browsing
+        // use the IndexedDB data to set the global state for offline browsing
         dispatch({
           type: UPDATE_PRODUCTS,
           products: products
-        })
-      })
+        });
+      });
     }
   }, [data, loading, dispatch]);
 
-  
   function filterProducts() {
     if (!currentCategory) {
       return state.products;
     }
-  
+
     return state.products.filter(product => product.category._id === currentCategory);
   }
-
 
   return (
     <div className="my-2">
       <h2>Our Products:</h2>
-      {products.length ? (
+      {state.products.length ? (
         <div className="flex-row">
             {filterProducts().map(product => (
                 <ProductItem
